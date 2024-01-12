@@ -41,6 +41,16 @@ type InputAttributesFromZodSchema = {
 type SupportedZodSchema<Values = any> = z.ZodSchema<Values> | ZodEffects<z.ZodSchema<Values>>;
 
 /**
+ * Some global configuration for the FormikZod component.
+ */
+type FormikZodConfig = {
+  /** Whether to show "(required)" on all `StyledInputFormikField` labels. */
+  showRequired?: boolean;
+  /** Whether hints should appear above or below the input. Defaults to below. */
+  hintPosition?: 'above' | 'below';
+};
+
+/**
  * @returns a Zod error map that uses the provided `intl` object to internationalize the error messages.
  */
 const getCustomZodErrorMap =
@@ -230,9 +240,12 @@ export function getSchemaFromFormik(formik: FormikState<any>): SupportedZodSchem
 /**
  * A helper to create the status and validate functions (memoized).
  */
-function useFormikZodState<Values extends FormikValues = FormikValues>(schema: z.ZodSchema<Values>) {
+function useFormikZodState<Values extends FormikValues = FormikValues>(
+  schema: z.ZodSchema<Values>,
+  config?: FormikZodConfig,
+) {
   const intl = useIntl();
-  const status: FormikStatusWithSchema = React.useMemo(() => ({ schema }), [schema]);
+  const status: FormikStatusWithSchema = React.useMemo(() => ({ schema, config }), [schema, config]);
   const validate = React.useCallback(
     values => getErrorsObjectFromZodSchema<Values>(intl, schema, values),
     [intl, schema],
@@ -264,11 +277,13 @@ function useFormikZodStatusUpdater<Values extends FormikValues = FormikValues>(
  */
 export function useFormikZod<Values extends FormikValues = FormikValues>({
   schema,
+  config,
   ...props
 }: Omit<FormikConfig<Values>, 'initialStatus' | 'validate'> & {
   schema: SupportedZodSchema<Values>;
+  config?: FormikZodConfig;
 }) {
-  const { validate, status } = useFormikZodState(schema);
+  const { validate, status } = useFormikZodState(schema, config);
   const formik = useFormik<Values>({ ...props, initialStatus: status, validate });
   useFormikZodStatusUpdater(formik, status);
   return formik;
@@ -309,13 +324,15 @@ function FormikZodStatusHandler<Values extends FormikValues = FormikValues>({
  */
 export function FormikZod<Values extends FormikValues = FormikValues>({
   schema,
+  config,
   component,
   children,
   ...props
 }: Omit<React.ComponentProps<typeof Formik>, 'initialStatus' | 'validate' | 'render'> & {
   schema: SupportedZodSchema<Values>;
+  config?: FormikZodConfig;
 }) {
-  const { validate, status } = useFormikZodState(schema);
+  const { validate, status } = useFormikZodState(schema, config);
   return (
     <Formik {...props} initialStatus={status} validate={validate}>
       {/* eslint-disable-next-line react/no-children-prop */}

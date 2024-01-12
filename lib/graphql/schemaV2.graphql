@@ -5153,6 +5153,11 @@ type AccountPermissions {
   Whether the current user can contact this account
   """
   contact: Permission!
+
+  """
+  Whether the current user can download this account's payment receipts
+  """
+  canDownloadPaymentReceipts: Permission!
 }
 
 type Permission {

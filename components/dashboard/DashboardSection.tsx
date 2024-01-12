@@ -25,6 +25,7 @@ import InvoicesReceipts from './sections/invoices-receipts/InvoicesReceipts';
 import NotificationsSettings from './sections/NotificationsSettings';
 import Overview from './sections/overview/Overview';
 import HostDashboardReports from './sections/reports/HostDashboardReports';
+import { TaxInformationSettings } from './sections/tax-information';
 import Team from './sections/Team';
 import AccountTransactions from './sections/transactions/AccountTransactions';
 import HostTransactions from './sections/transactions/HostTransactions';
@@ -59,6 +60,7 @@ const DASHBOARD_COMPONENTS = {
 const SETTINGS_COMPONENTS = {
   [SETTINGS_SECTIONS.INVOICES_RECEIPTS]: InvoicesReceipts,
   [SETTINGS_SECTIONS.NOTIFICATIONS]: NotificationsSettings,
+  [SETTINGS_SECTIONS.TAX_INFORMATION]: TaxInformationSettings,
 };
 
 const DashboardSection = ({ account, isLoading, section, subpath }) => {
@@ -97,7 +99,7 @@ const DashboardSection = ({ account, isLoading, section, subpath }) => {
   if (SettingsComponent) {
     return (
       // <div className="flex max-w-screen-lg justify-center">
-      <div className="max-w-screen-md flex-1">
+      <div className="flex-1">
         <SettingsComponent account={account} accountSlug={account.slug} subpath={subpath} />
       </div>
       // </div>

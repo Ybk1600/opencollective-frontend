@@ -34,16 +34,18 @@ const StyledInputField = ({
   name = undefined,
   error = undefined,
   hint = undefined,
+  hintPosition = 'below',
   success = undefined,
   disabled = undefined,
   required = undefined,
   inputType = undefined,
   labelFontSize = undefined,
-  labelFontWeight = 'normal',
+  labelFontWeight = '700',
   labelColor = 'black.800',
   labelProps = undefined,
   hideOptionalLabel = undefined,
   useRequiredLabel = undefined,
+  showRequired = undefined,
   isPrivate = undefined,
   helpText = undefined,
   flexDirection = undefined,
@@ -92,6 +94,15 @@ const StyledInputField = ({
                 />
                 {isPrivate && <PrivateIconWithSpace />}
               </Span>
+            ) : showRequired ? (
+              <Span color="black.700" fontWeight="normal">
+                <FormattedMessage
+                  id="RequiredFieldLabel"
+                  defaultMessage="{field} (required)"
+                  values={{ field: labelContent }}
+                />
+                {isPrivate && <PrivateIconWithSpace />}
+              </Span>
             ) : displayRequiredLabel ? (
               <Span color="black.700">
                 {labelContent} * {isPrivate && <PrivateIconWithSpace />}
@@ -107,6 +118,7 @@ const StyledInputField = ({
             )}
           </P>
         )}
+        {hint && hintPosition === 'above' && <div className="mb-1 text-xs font-light text-gray-600">{hint}</div>}
         {typeof children === 'function'
           ? children({
               name: name || htmlFor,
@@ -128,7 +140,7 @@ const StyledInputField = ({
           </Span>
         </Box>
       )}
-      {hint && <div className="mt-1 text-xs font-light text-gray-600">{hint}</div>}
+      {hint && hintPosition === 'below' && <div className="mt-1 text-xs font-light text-gray-600">{hint}</div>}
     </Box>
   );
 };
@@ -144,6 +156,8 @@ StyledInputField.propTypes = {
   error: PropTypes.any,
   /** text to display below the input when there's no error */
   hint: PropTypes.any,
+  /** Whether hints should appear above or below the input. Defaults to below. */
+  hintPosition: PropTypes.any,
   /** the label's 'for' attribute to be used as the 'name' and 'id' for the input */
   htmlFor: PropTypes.string,
   /** By default name is equal to htmlFor, but you can use this prop to override it */
