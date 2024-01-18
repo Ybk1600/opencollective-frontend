@@ -264,11 +264,14 @@ export const ActivityDescriptionI18n = defineMessages({
     defaultMessage: 'New pending <Order>contribution</Order> from <FromAccount></FromAccount> to <Account></Account>',
   },
   ORDER_PENDING_CONTRIBUTION_REMINDER: {
-    defaultMessage:
-      'Sent reminder to <FromAccount></FromAccount> about <Order>contribution</Order> to <Account></Account>',
+    defaultMessage: 'Sent reminder to <Host></Host> about <Order>pending contribution</Order> to <Account></Account>',
   },
   BACKYOURSTACK_DISPATCH_CONFIRMED: {
     defaultMessage: 'BackYourStack dispatch confirmed for <Account></Account>',
+  },
+  ORDER_PAYMENT_FAILED: {
+    defaultMessage:
+      'Payment from <FromAccount></FromAccount> to <Account></Account> for <Order>contribution</Order> failed',
   },
   PAYMENT_FAILED: {
     defaultMessage:
