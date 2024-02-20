@@ -6,6 +6,7 @@ export enum PREVIEW_FEATURE_KEYS {
   EXPENSE_CATEGORIZATION = 'EXPENSE_CATEGORIZATION',
   DYNAMIC_TOP_BAR = 'DYNAMIC_TOP_BAR',
   COLLECTIVE_OVERVIEW = 'COLLECTIVE_OVERVIEW',
+  NEW_EXPENSE_FLOW = 'NEW_EXPENSE_FLOW',
 }
 
 export type PreviewFeature = {
@@ -55,5 +56,12 @@ export const previewFeatures: PreviewFeature[] = [
     alwaysEnableInDev: true,
     enabledByDefaultFor: ['*'],
     closedBetaAccessFor: ['opencollective', 'opensource', 'foundation', 'europe', 'design', 'engineering'],
+  },
+  {
+    key: PREVIEW_FEATURE_KEYS.NEW_EXPENSE_FLOW,
+    title: 'New expense submission flow',
+    description: 'Improved expense submission flow in Dashboard',
+    publicBeta: false,
+    closedBetaAccessFor: ['opencollective', 'design', 'engineering'],
   },
 ];
