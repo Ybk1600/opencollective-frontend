@@ -38,7 +38,7 @@ const Count = ({ count, selected }: { count?: number; selected?: boolean }) => {
 type TabsProps = {
   tabs: Array<{ id: string; label: React.ReactNode | string; count?: number; selected?: boolean }>;
   selectedId?: string;
-  onChange?: Function;
+  onChange?: (value: string) => void;
 };
 
 const Tabs = ({ tabs, selectedId, onChange, ...props }: TabsProps & Parameters<typeof Flex>[0]) => {

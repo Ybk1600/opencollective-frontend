@@ -62,7 +62,9 @@ export default function VirtualCardRequestFilter(props: VirtualCardRequestStatus
           <StyledSelectFilter
             intl={intl}
             inputId="virtual-card-request.status.filter"
-            onChange={newValue => props.onVirtualCardRequestStatusFilter(newValue.map(v => v.value))}
+            onChange={(newValue: { value: VirtualCardRequestStatus }[]) =>
+              props.onVirtualCardRequestStatusFilter(newValue.map(v => v.value))
+            }
             isMulti={true}
             isLoading={props.loading}
             value={props.virtualCardRequestStatusFilter.map(c => ({

@@ -4,7 +4,13 @@ import propTypes from '@styled-system/prop-types';
 import { isNil, omitBy, truncate } from 'lodash';
 import type { IntlShape } from 'react-intl';
 import { defineMessages, FormattedMessage, injectIntl } from 'react-intl';
-import type { ContainerProps, GroupHeadingProps, OptionProps, ValueContainerProps } from 'react-select';
+import type {
+  ContainerProps,
+  GroupHeadingProps,
+  OptionProps,
+  Props as ReactSelectProps,
+  ValueContainerProps,
+} from 'react-select';
 import Select, { components as ReactSelectComponents } from 'react-select';
 import styled from 'styled-components';
 import type { BorderProps, BorderRadiusProps, LayoutProps, SpaceProps, TypographyProps } from 'styled-system';
@@ -326,35 +332,13 @@ export type StyledSelectProps = LayoutProps &
   TypographyProps &
   BorderProps &
   BorderRadiusProps &
-  SpaceProps & {
-    intl: IntlShape;
-    /** Alias for isDisabled */
-    inputId: string;
-    name?: string;
-    placeholder?: React.ReactNode;
-    disabled?: boolean;
-    required?: boolean;
-    useSearchIcon?: boolean;
-    hideDropdownIndicator?: boolean;
-    hideMenu?: boolean;
-    error?: boolean;
-    style?: Record<string, unknown>;
+  SpaceProps &
+  Omit<ReactSelectProps, 'styles' | 'components'> & {
     styles?: Record<string, unknown>;
-    onBlur?: Function;
-    onChange?: Function;
-    formatOptionLabel?: Function;
-    isLoading?: boolean;
-    isSearchable?: boolean;
-    isClearable?: boolean;
-    options?: any;
-    value?: any;
-    defaultValue?: any;
-    menuPlacement?: 'auto' | 'bottom' | 'top';
     components?: Record<string, React.ReactNode | React.Component | React.FunctionComponent>;
-    closeMenuOnSelect?: boolean;
-    hideSelectedOptions?: boolean;
-    isMulti?: boolean;
-    onInputChange?: Function;
+    intl: IntlShape;
+    disabled?: boolean;
+    error?: boolean;
   };
 
 type StyledSelectCustomComponent = Select & React.ExoticComponent<StyledSelectProps>;
