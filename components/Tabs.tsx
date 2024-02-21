@@ -5,7 +5,7 @@ import { useIntl } from 'react-intl';
 import { useWindowResize, VIEWPORTS } from '../lib/hooks/useWindowResize';
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/Select';
-import { Flex } from './Grid';
+import type { Flex } from './Grid';
 
 const abbreviateNumber = number => {
   if (number >= 1000000000) {

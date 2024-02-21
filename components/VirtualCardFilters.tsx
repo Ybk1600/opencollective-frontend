@@ -3,7 +3,8 @@ import { debounce, isNil, sortBy } from 'lodash';
 import { defineMessages, FormattedMessage, useIntl } from 'react-intl';
 import styled from 'styled-components';
 
-import { Collective, Currency, VirtualCardStatus } from '../lib/graphql/types/v2/graphql';
+import type { Collective, Currency } from '../lib/graphql/types/v2/graphql';
+import { VirtualCardStatus } from '../lib/graphql/types/v2/graphql';
 import { VirtualCardStatusI18n } from '../lib/virtual-cards/constants';
 
 import AmountRangeFilter from './filters/AmountRangeFilter';
