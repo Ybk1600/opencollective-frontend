@@ -94,6 +94,7 @@ class UserSecurity extends React.Component {
       hasRole: PropTypes.func.isRequired,
       email: PropTypes.string.isRequired,
     }),
+    login: PropTypes.func.isRequired,
     refetchLoggedInUser: PropTypes.func.isRequired,
     data: PropTypes.shape({
       individual: PropTypes.object,
@@ -234,9 +235,11 @@ class UserSecurity extends React.Component {
 
     try {
       this.setState({ passwordLoading: true });
-      await this.props.setPassword({
-        variables: { password, currentPassword },
-      });
+      const hadPassword = this.props.LoggedInUser.hasPassword;
+      const result = await this.props.setPassword({ variables: { password, currentPassword } });
+      if (result.data.setPassword.token) {
+        await this.props.login(result.data.setPassword.token);
+      }
       await this.props.refetchLoggedInUser();
       this.setState({
         currentPassword: '',
@@ -248,7 +251,7 @@ class UserSecurity extends React.Component {
       });
       this.props.addToast({
         type: TOAST_TYPE.SUCCESS,
-        message: this.props.LoggedInUser.hasPassword ? (
+        message: hadPassword ? (
           <FormattedMessage defaultMessage="Password successfully updated" />
         ) : (
           <FormattedMessage defaultMessage="Password successfully set" />
@@ -813,20 +816,14 @@ const accountHasTwoFactorAuthQuery = gql`
 const setPasswordMutation = gql`
   mutation SetPassword($password: String!, $currentPassword: String) {
     setPassword(password: $password, currentPassword: $currentPassword) {
-      id
-      hasPassword
+      individual {
+        id
+        hasPassword
+      }
+      token
     }
   }
 `;
-
-const addAccountHasTwoFactorAuthData = graphql(accountHasTwoFactorAuthQuery, {
-  options: props => ({
-    context: API_V2_CONTEXT,
-    variables: {
-      slug: props.slug,
-    },
-  }),
-});
 
 const addGraphql = compose(
   graphql(setPasswordMutation, {
@@ -841,7 +838,14 @@ const addGraphql = compose(
     name: 'removeTwoFactorAuthTokenFromIndividual',
     options: { context: API_V2_CONTEXT },
   }),
-  addAccountHasTwoFactorAuthData,
+  graphql(accountHasTwoFactorAuthQuery, {
+    options: props => ({
+      context: API_V2_CONTEXT,
+      variables: {
+        slug: props.slug,
+      },
+    }),
+  }),
 );
 
 export default injectIntl(withToasts(withUser(addGraphql(UserSecurity))));

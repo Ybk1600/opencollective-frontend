@@ -850,6 +850,11 @@ type Order {
   paymentMethod: PaymentMethod
 
   """
+  Host fee percent attached to the Order.
+  """
+  hostFeePercent: Float
+
+  """
   Platform Tip attached to the Order.
   """
   platformTipAmount: Amount
@@ -883,9 +888,19 @@ type Order {
   memo: String
 
   """
+  The account who created this order
+  """
+  createdByAccount: Account
+
+  """
   Date the funds were received.
   """
   processedAt: DateTime
+
+  """
+  Data about the pending contribution
+  """
+  pendingContributionData: PendingOrderData
 
   """
   Whether the order needs confirmation (3DSecure/SCA)
@@ -3052,7 +3067,7 @@ type Host implements Account & AccountWithContributions {
   """
   How much platform fees are charged for this account
   """
-  platformFeePercent: Int!
+  platformFeePercent: Float!
 
   """
   Returns true if a custom contribution to Open Collective can be submitted for contributions made to this account
@@ -3265,7 +3280,7 @@ interface AccountWithContributions {
   """
   How much platform fees are charged for this account
   """
-  platformFeePercent: Int!
+  platformFeePercent: Float!
 
   """
   Returns true if a custom contribution to Open Collective can be submitted for contributions made to this account
@@ -3500,6 +3515,7 @@ enum PaymentMethodType {
   us_bank_account @deprecated(reason: "Please use uppercase values")
   sepa_debit @deprecated(reason: "Please use uppercase values")
   bacs_debit @deprecated(reason: "Please use uppercase values")
+  bancontact @deprecated(reason: "Please use uppercase values")
   ALIPAY
   CREDITCARD
   PREPAID
@@ -3515,6 +3531,7 @@ enum PaymentMethodType {
   US_BANK_ACCOUNT
   SEPA_DEBIT
   BACS_DEBIT
+  BANCONTACT
 }
 
 input PaymentMethodReferenceInput {
@@ -3752,6 +3769,7 @@ enum PaymentMethodLegacyType {
   US_BANK_ACCOUNT
   SEPA_DEBIT
   BACS_DEBIT
+  BANCONTACT
 }
 
 """
@@ -5128,6 +5146,24 @@ type OrderPermissions {
   Whether the current user can mark this order as unpaid
   """
   canMarkAsPaid: Boolean!
+
+  """
+  Whether the current user edit this pending order
+  """
+  canEdit: Boolean!
+}
+
+type PendingOrderData {
+  expectedAt: DateTime
+  paymentMethod: String
+  ponumber: String
+  memo: String
+  fromAccountInfo: PendingOrderFromAccountInfo
+}
+
+type PendingOrderFromAccountInfo {
+  name: String
+  email: String
 }
 
 enum TierType {
@@ -6271,7 +6307,7 @@ type Collective implements Account & AccountWithHost & AccountWithContributions 
   """
   How much platform fees are charged for this account
   """
-  platformFeePercent: Int!
+  platformFeePercent: Float!
 
   """
   Date of approval by the Fiscal Host.
@@ -6349,7 +6385,7 @@ interface AccountWithHost {
   """
   Fees percentage that the platform takes for this collective
   """
-  platformFeePercent: Int
+  platformFeePercent: Float
 
   """
   Date of approval by the Fiscal Host.
@@ -7118,7 +7154,7 @@ type Event implements Account & AccountWithHost & AccountWithContributions & Acc
   """
   How much platform fees are charged for this account
   """
-  platformFeePercent: Int!
+  platformFeePercent: Float!
 
   """
   Date of approval by the Fiscal Host.
@@ -8554,7 +8590,7 @@ type Organization implements Account & AccountWithContributions {
   """
   How much platform fees are charged for this account
   """
-  platformFeePercent: Int!
+  platformFeePercent: Float!
 
   """
   Returns true if a custom contribution to Open Collective can be submitted for contributions made to this account
@@ -9167,7 +9203,7 @@ type Vendor implements Account & AccountWithHost & AccountWithContributions {
   """
   How much platform fees are charged for this account
   """
-  platformFeePercent: Int!
+  platformFeePercent: Float!
 
   """
   Date of approval by the Fiscal Host.
@@ -11981,7 +12017,7 @@ type Fund implements Account & AccountWithHost & AccountWithContributions {
   """
   How much platform fees are charged for this account
   """
-  platformFeePercent: Int!
+  platformFeePercent: Float!
 
   """
   Date of approval by the Fiscal Host.
@@ -12594,7 +12630,7 @@ type Project implements Account & AccountWithHost & AccountWithContributions & A
   """
   How much platform fees are charged for this account
   """
-  platformFeePercent: Int!
+  platformFeePercent: Float!
 
   """
   Date of approval by the Fiscal Host.
@@ -12826,6 +12862,11 @@ type Mutation {
     Information about the organization to create (name, slug, description, website, ...)
     """
     organization: OrganizationCreateInput!
+
+    """
+    List of members to invite on Organization creation.
+    """
+    inviteMembers: [InviteMemberInput]
   ): Organization
 
   """
@@ -13332,7 +13373,7 @@ type Mutation {
     The current password (if any) to confirm password change.
     """
     currentPassword: String
-  ): Individual!
+  ): SetPasswordResponse!
 
   """
   Invite a new member to the Collective. Scope: "account".
@@ -13594,6 +13635,11 @@ type Mutation {
   To submit a new order. Scope: "orders".
   """
   createPendingOrder(order: PendingOrderCreateInput!): Order!
+
+  """
+  To edit a pending order. Scope: "orders".
+  """
+  editPendingOrder(order: PendingOrderEditInput!): Order!
 
   """
   Add a new payment method to be used with an Order. Scope: "orders".
@@ -14008,6 +14054,14 @@ type Mutation {
     """
     socialLinks: [SocialLinkInput!]!
   ): [SocialLink!]!
+  setTags(
+    """
+    Tags associated with the object being updated
+    """
+    tags: [String]
+    order: OrderReferenceInput
+    expense: ExpenseReferenceInput
+  ): TagResponse!
 }
 
 input CollectiveCreateInput {
@@ -14853,6 +14907,11 @@ enum ProcessHostApplicationAction {
   SEND_PUBLIC_MESSAGE
 }
 
+type SetPasswordResponse {
+  individual: Individual!
+  token: String
+}
+
 input MemberInvitationReferenceInput {
   """
   The public id identifying the member invitation (ie: dgm9bnk8-0437xqry-ejpvzeol-jdayw5re)
@@ -15227,7 +15286,7 @@ input PendingOrderCreateInput {
   fromAccountInfo: OrderFromAccountInfo
 
   """
-  The collective/event/project you want to contribute to
+  The collective you want to contribute to
   """
   toAccount: AccountReferenceInput!
 
@@ -15252,15 +15311,96 @@ input PendingOrderCreateInput {
   description: String
 
   """
-  Custom data related to the Pending Order
+  Private memo for the host
   """
-  customData: JSON
+  memo: String
+
+  """
+  External identifier for the order
+  """
+  ponumber: String
+
+  """
+  Payment method expected for this order
+  """
+  paymentMethod: String
 
   """
   When is the money expected?
   """
   expectedAt: DateString
-  hostFeePercent: Int
+  hostFeePercent: Float
+}
+
+"""
+Input to edit an existing pending order
+"""
+input PendingOrderEditInput {
+  """
+  The public id identifying the order (ie: dgm9bnk8-0437xqry-ejpvzeol-jdayw5re)
+  """
+  id: String
+
+  """
+  The legacy public id identifying the order (ie: 4242)
+  """
+  legacyId: Int
+
+  """
+  The contribution amount, without platform contribution and taxes
+  """
+  amount: AmountInput!
+
+  """
+  The profile making the contribution.
+  """
+  fromAccount: AccountReferenceInput
+
+  """
+  Additional information about the contributing profile
+  """
+  fromAccountInfo: OrderFromAccountInfo
+
+  """
+  Platform tip attached to this order
+  """
+  platformTipAmount: AmountInput
+
+  """
+  Use this field to set the taxes associated to this order
+  """
+  taxes: [OrderTaxInput]
+
+  """
+  The tier you are contributing to
+  """
+  tier: TierReferenceInput
+
+  """
+  Public order description
+  """
+  description: String
+
+  """
+  Private memo for the host
+  """
+  memo: String
+
+  """
+  External identifier for the order
+  """
+  ponumber: String
+
+  """
+  Payment method expected for this order
+  """
+  paymentMethod: String
+
+  """
+  When is the money expected?
+  """
+  expectedAt: DateString
+  hostFeePercent: Float
 }
 
 type CreditCardWithStripeError {
@@ -15414,14 +15554,14 @@ input TierUpdateInput {
   The public id identifying the tier (ie: dgm9bnk8-0437xqry-ejpvzeol-jdayw5re)
   """
   id: String!
-  amount: AmountInput!
+  amount: AmountInput
   name: NonEmptyString
   description: String
   button: String
   goal: AmountInput
-  type: TierType!
-  amountType: TierAmountType!
-  frequency: TierFrequency!
+  type: TierType
+  amountType: TierAmountType
+  frequency: TierFrequency
   presets: [Int!]
   maxQuantity: Int
   minimumAmount: AmountInput
@@ -15431,8 +15571,8 @@ input TierUpdateInput {
 }
 
 input TierCreateInput {
-  amount: AmountInput!
-  name: NonEmptyString
+  amount: AmountInput
+  name: NonEmptyString!
   description: String
   button: String
   goal: AmountInput
@@ -15494,4 +15634,9 @@ input PersonalTokenReferenceInput {
 input SocialLinkInput {
   type: SocialLinkType!
   url: URL!
+}
+
+type TagResponse {
+  order: Order
+  expense: Expense
 }

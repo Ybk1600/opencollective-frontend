@@ -1,9 +1,7 @@
 name: E2E
 
 on:
-  push:
-    branches-ignore:
-      - 'i18n/crowdin'
+  workflow_call:
 
 env:
   TZ: UTC
@@ -39,6 +37,7 @@ jobs:
     timeout-minutes: 30
 
     strategy:
+      fail-fast: false
       matrix:
         files: ['0*.js', '1*.js', '2*.js', '3*.js']
 
@@ -63,11 +62,6 @@ jobs:
       - name: Hack sources.list
         run: sudo sed -i 's|http://azure.archive.ubuntu.com/ubuntu/|http://mirror.arizona.edu/ubuntu/|g' /etc/apt/sources.list
 
-      # - name: Add stripe apt sources
-      #   run: |
-      #     curl -s https://packages.stripe.dev/api/security/keypair/stripe-cli-gpg/public | gpg --dearmor | sudo tee /usr/share/keyrings/stripe.gpg
-      #     echo "deb [signed-by=/usr/share/keyrings/stripe.gpg] https://packages.stripe.dev/stripe-cli-debian-local stable main" | sudo tee -a /etc/apt/sources.list.d/stripe.list
-
       - name: Update apt
         run: sudo apt-get update || exit 0
 
@@ -80,8 +74,11 @@ jobs:
       - name: Install graphicsmagick
         run: sudo apt-get install -y graphicsmagick
 
-      # - name: Install stripe-cli
-      #   run: sudo apt-get install -y stripe
+      - name: Install stripe-cli
+        run: |
+          sudo apt-get install -y wget
+          wget https://github.com/stripe/stripe-cli/releases/download/v1.13.9/stripe_1.13.9_linux_x86_64.tar.gz -O /tmp/stripe_1.13.9_linux_x86_64.tar.gz
+          sudo tar xzvf /tmp/stripe_1.13.9_linux_x86_64.tar.gz -C /bin/
 
       - name: Checkout (frontend)
         uses: actions/checkout@v3
@@ -109,7 +106,8 @@ jobs:
       # Checkouts
 
       - name: Set REF in env, removing the `refs/` part
-        run: echo "MATCHING_BRANCH_REF=$(echo $GITHUB_REF | sed 's|refs/||')" >> $GITHUB_ENV
+        run: |
+          echo "MATCHING_BRANCH_REF=${GITHUB_HEAD_REF-${GITHUB_REF##*/}}" >> $GITHUB_ENV
 
       - name: Check matching branch (api)
         id: check-matching-branch
@@ -118,7 +116,7 @@ jobs:
           route: GET /repos/{owner}/{repo}/git/ref/{ref}
           owner: opencollective
           repo: opencollective-api
-          ref: ${{ env.MATCHING_BRANCH_REF }}
+          ref: heads/${{ env.MATCHING_BRANCH_REF }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         continue-on-error: true
@@ -129,7 +127,7 @@ jobs:
         with:
           repository: opencollective/opencollective-api
           path: opencollective-api
-          ref: ${{ github.ref }}
+          ref: ${{ env.MATCHING_BRANCH_REF }}
 
       - name: Checkout (api - main)
         if: steps.check-matching-branch.outputs.status != 200
