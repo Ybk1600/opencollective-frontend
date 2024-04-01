@@ -104,7 +104,12 @@ export const ActivityTimelineMessageI18n = defineMessages<string, TimelineMessag
     defaultMessage: '<Individual></Individual> made purchase <Expense>{expenseDescription}</Expense> with virtual card',
   },
   SUBSCRIPTION_CANCELED: {
-    defaultMessage: '<Individual></Individual> canceled recurring contribution <Order></Order>',
+    defaultMessage: "<FromAccount></FromAccount>'s <Order>recurring contribution</Order> has been cancelled",
+    avatar: 'fromAccount',
+  },
+  SUBSCRIPTION_PAUSED: {
+    defaultMessage: "<FromAccount></FromAccount>'s <Order>recurring contribution</Order> has been paused",
+    avatar: 'fromAccount',
   },
   ORDER_PENDING_CONTRIBUTION_NEW: {
     defaultMessage: '<Individual></Individual> created new pending <Order>contribution</Order> to <Account></Account>',
@@ -305,7 +310,10 @@ export const ActivityDescriptionI18n = defineMessages({
   },
   // Contributions
   SUBSCRIPTION_CANCELED: {
-    defaultMessage: '<Order>Recurring contribution</Order> cancelled',
+    defaultMessage: "<FromAccount></FromAccount>'s <Order>recurring contribution</Order> cancelled",
+  },
+  SUBSCRIPTION_PAUSED: {
+    defaultMessage: "<FromAccount></FromAccount>'s <Order>recurring contribution</Order> paused",
   },
   TICKET_CONFIRMED: {
     id: 'WebhookEvents.TICKET_CONFIRMED',
@@ -334,6 +342,10 @@ export const ActivityDescriptionI18n = defineMessages({
   },
   BACKYOURSTACK_DISPATCH_CONFIRMED: {
     defaultMessage: 'BackYourStack dispatch confirmed for <Account></Account>',
+  },
+  ORDER_PAYMENT_FAILED: {
+    defaultMessage:
+      'Payment from <FromAccount></FromAccount> to <Account></Account> for <Order>contribution</Order> failed',
   },
   PAYMENT_FAILED: {
     defaultMessage:

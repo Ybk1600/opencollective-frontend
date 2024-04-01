@@ -7,16 +7,31 @@ export const adminPanelQuery = gql`
     account(slug: $slug) {
       id
       legacyId
+      createdAt
       slug
       name
       isHost
       type
       settings
       isArchived
+      isActive
       isIncognito
       imageUrl(height: 256)
+      duplicatedAccounts {
+        totalCount
+      }
       pendingExpenses: expenses(status: PENDING, direction: RECEIVED, includeChildrenExpenses: true, limit: 0) {
         totalCount
+      }
+      pausedIncomingContributions: orders(filter: INCOMING, status: PAUSED, includeIncognito: true) {
+        totalCount
+      }
+      pausedOutgoingContributions: orders(filter: OUTGOING, status: PAUSED, includeIncognito: true) {
+        totalCount
+      }
+      ... on AccountWithContributions {
+        canStartResumeContributionsProcess
+        hasResumeContributionsProcessStarted
       }
       childrenAccounts {
         totalCount
@@ -52,6 +67,7 @@ export const adminPanelQuery = gql`
         hostFeePercent
         host {
           id
+          legacyId
           slug
           name
           settings

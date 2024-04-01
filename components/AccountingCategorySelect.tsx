@@ -39,6 +39,7 @@ type AccountingCategorySelectProps = {
   selectedCategory: AccountingCategory | undefined | null;
   valuesByRole?: Expense['valuesByRole'];
   onChange: (category: AccountingCategory) => void;
+  onBlur?: () => void;
   allowNone?: boolean;
   showCode?: boolean;
   id?: string;
@@ -265,11 +266,12 @@ const useExpenseCategoryPredictionService = (
     }
 
     const filteredData = data.filter(prediction => prediction.confidence >= 0.1);
-    const hostCategories = get(host, 'accountingCategories.nodes', []);
+    const hostCategories =
+      get(host, 'accountingCategories.nodes') || get(host, 'expenseAccountingCategories.nodes') || [];
     const getHostCategoryFromCode = code => hostCategories.find(category => category.code === code);
     const mappedData = filteredData.map(prediction => getHostCategoryFromCode(prediction.code));
     return mappedData.filter(Boolean);
-  }, [hasValidParams, data]);
+  }, [host, hasValidParams, data]);
 
   // Store previous predictions to keep showing them while loading
   const previousPredictions = React.useRef(predictions);
@@ -282,6 +284,8 @@ const useExpenseCategoryPredictionService = (
   return { loading, predictions: predictions || (showPreviousPredictions && previousPredictions.current) || [] };
 };
 
+const hostSupportsPredictions = (host: RequiredHostFields) => ['foundation', 'opensource'].includes(host?.slug);
+
 const AccountingCategorySelect = ({
   host,
   account,
@@ -291,6 +295,7 @@ const AccountingCategorySelect = ({
   valuesByRole,
   predictionStyle,
   onChange,
+  onBlur,
   id,
   error,
   allowNone = false,
@@ -303,7 +308,7 @@ const AccountingCategorySelect = ({
   const [isOpen, setOpen] = React.useState(false);
   const { LoggedInUser } = useLoggedInUser();
   const isHostAdmin = Boolean(LoggedInUser?.isAdminOfCollective(host));
-  const usePredictions = host.slug === 'foundation' && kind === 'EXPENSE' && (predictionStyle === 'full' || isOpen);
+  const usePredictions = hostSupportsPredictions(host) && kind === 'EXPENSE' && (predictionStyle === 'full' || isOpen);
   const { predictions } = useExpenseCategoryPredictionService(usePredictions, host, account, expenseValues);
   const hasPredictions = Boolean(predictions?.length);
   const triggerChange = newCategory => {
@@ -319,7 +324,7 @@ const AccountingCategorySelect = ({
   return (
     <div>
       <Popover open={isOpen} onOpenChange={setOpen}>
-        <PopoverTrigger asChild>
+        <PopoverTrigger asChild onBlur={onBlur}>
           {children || (
             <button
               id={id}

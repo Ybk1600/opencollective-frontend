@@ -43,7 +43,7 @@ type SupportedZodSchema<Values = any> = z.ZodSchema<Values> | ZodEffects<z.ZodSc
 /**
  * @returns a Zod error map that uses the provided `intl` object to internationalize the error messages.
  */
-const getCustomZodErrorMap =
+export const getCustomZodErrorMap =
   (intl: IntlShape) =>
   (error: ZodIssue, ctx: { defaultError: string; data: any }): { message: string } => {
     if (error.message && error.message !== ctx.defaultError) {
@@ -59,6 +59,11 @@ const getCustomZodErrorMap =
       message = intl.formatMessage(RICH_ERROR_MESSAGES.format);
     } else if (error.code === 'invalid_enum_value') {
       message = intl.formatMessage(RICH_ERROR_MESSAGES.enum, { options: error.options.join(', ') });
+    } else if (error.code === 'invalid_type') {
+      const value = get(ctx.data, error.path);
+      if (value === undefined || value === null) {
+        message = intl.formatMessage(RICH_ERROR_MESSAGES.requiredValue);
+      }
     }
 
     return { message: message || intl.formatMessage(RICH_ERROR_MESSAGES.invalidValue) };
@@ -312,15 +317,16 @@ export function FormikZod<Values extends FormikValues = FormikValues>({
   component,
   children,
   ...props
-}: Omit<React.ComponentProps<typeof Formik>, 'initialStatus' | 'validate' | 'render'> & {
+}: Omit<React.ComponentProps<typeof Formik<Values>>, 'initialStatus' | 'validate' | 'render'> & {
   schema: SupportedZodSchema<Values>;
 }) {
   const { validate, status } = useFormikZodState(schema);
+  const FormikWrapper = Formik<Values>;
   return (
-    <Formik {...props} initialStatus={status} validate={validate}>
+    <FormikWrapper {...props} initialStatus={status} validate={validate}>
       {/* eslint-disable-next-line react/no-children-prop */}
       {formik => <FormikZodStatusHandler formik={formik} status={status} component={component} children={children} />}
-    </Formik>
+    </FormikWrapper>
   );
 }
 
